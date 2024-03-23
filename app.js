@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import  express  from "express";
 import {Form} from "./models/Form.model.js"
 import cors from "cors"
-
+import formRouter from "./Routes/form.route.js"
 
 const app =  express();
 
@@ -13,6 +13,8 @@ cors({
 })
 )
 
+
+app.use("/api/v1/form", formRouter)
 
 
 
