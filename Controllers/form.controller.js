@@ -8,40 +8,38 @@ import mongoose from "mongoose";
 const fillForm = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
 
-  const imgLocalPath = req.file?.path; // Access the uploaded file using req.file
-
-  console.log(imgLocalPath);
-
-  if (!(title && description)) {
-    throw new ApiError(404, "title and description both are required!!");
+  // Check if a form with the same title already exists
+  const existedform = await Form.find({ title });
+  console.log(existedform);
+  if (existedform) {
+   throw res.status(409).json(409,"this form already exist!!")
+  //  throw new ApiError(409, "This form already exists!");
   }
 
+  const imgLocalPath = req.file?.path;
   if (!imgLocalPath) {
     throw new ApiError(
       400,
-      "Image Local Path is required!! , there is some problem while uploading image to local storage"
+      "Image Local Path is required! There was an issue while uploading the image to the local storage."
     );
   }
 
   const image = await uploadOnCloudinary(imgLocalPath);
-  console.log(image);
   if (!image) {
     throw new ApiError(
       400,
-      "Problem in uploading the image file on cloudinary"
+      "There was a problem uploading the image file to Cloudinary."
     );
   }
 
   const form = new Form({
-    // title: req.body.title,
-    // description: req.body.description,
-    title,
-    description,
+    title, //:req.body.title,
+    description, //:req.body.description,
     image: image.url,
   });
-  console.log(form);
+
   if (!form) {
-    throw new ApiError(404, "there is some error while creating the form!");
+    throw new ApiError(500, "There was an error while creating the form!");
   }
 
   await form.save();
@@ -55,8 +53,7 @@ const fillForm = asyncHandler(async (req, res) => {
 
 //function for getting all form details
 const getFormDetails = asyncHandler(async (req, res) => {
-
-  const  _id = req.params.formId
+  const _id = req.params.formId;
   //checking whether the given  formId exists or not
   if (!_id) {
     throw new ApiError(
@@ -65,7 +62,7 @@ const getFormDetails = asyncHandler(async (req, res) => {
     );
   }
 
-  const form = await Form.findById({_id}) //: req.params.formId});
+  const form = await Form.findById({ _id }); //: req.params.formId});
   console.log(form);
 
   return res
@@ -90,9 +87,8 @@ const updateForm = asyncHandler(async (req, res) => {
 
   // Convert _id to ObjectId if necessary
 
-
   const form = await Form.findByIdAndUpdate(
-  {_id : req.params.formId},
+    { _id: req.params.formId },
     {
       $set: {
         title: req.body.title,
@@ -108,21 +104,27 @@ const updateForm = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, form, "Form details updated successfully!"));
 });
 
-
-
 //function for deleting form details
 const deleteFormDetails = asyncHandler(async (req, res) => {
-  const  _id = req.params.formId; //here we cannnot destructure the _id 
+  const _id = req.params.formId; //here we cannnot destructure the _id
 
   if (!_id) {
     throw new ApiError(400, "please provide a valid form Id");
   }
 
-  const form = await Form.findByIdAndDelete({_id});
+  const form = await Form.findByIdAndDelete({ _id });
   return res
     .status(200)
     .json(
       new ApiResponse(200, form, "The form has been deleted  succesfully!")
     );
 });
-export { fillForm, updateForm, getFormDetails, deleteFormDetails };
+
+const getAllForm = asyncHandler(async (req, res) => {
+  const form = await Form.find();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, form, "Forms fetched Successfully"));
+});
+export { fillForm, updateForm, getFormDetails, deleteFormDetails, getAllForm };

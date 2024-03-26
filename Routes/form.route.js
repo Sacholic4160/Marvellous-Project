@@ -1,14 +1,16 @@
 import { Router } from "express";
-import { fillForm,updateForm, getFormDetails, deleteFormDetails } from "../Controllers/form.controller.js";
+import { fillForm,updateForm, getFormDetails, deleteFormDetails,getAllForm } from "../Controllers/form.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
 //route for filling a form
-router.route("/fill-form/").post(
+router.route("/fill-form").post(
   upload.single("image"), // Corrected to use single field name
   fillForm
 );
+//route for getting all form details
+router.route("/getAllDetails").get(getAllForm)
 
 //route for getting form details
  router.route("/get-details/:formId").get(getFormDetails)
