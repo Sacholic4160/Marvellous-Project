@@ -13,7 +13,7 @@ const formSchema =  new Schema({
     },
     image:{
         type: String,    // we will upload it on  cloudinary!!
-        required:true
+        required:false
     }
 },{timestamps:true})
 
