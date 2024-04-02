@@ -6,7 +6,6 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 //import mongoose from "mongoose";
 
 // const fillForm = asyncHandler(async (req, res,next) => {
-  
 
 //   try {
 
@@ -29,7 +28,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 //       throw new Error( "Phone Number must be a 10-digit number!");
 //     } else if (mobile[0] !== "9" && mobile[0] !== "8" && mobile[0] !== "7") {
 //       throw new Error( "Phone number should start with 9, 8, or 7");
-//     } 
+//     }
 
 //     const imgLocalPath = req.file?.path;
 //     if (!imgLocalPath) {
@@ -41,7 +40,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 //     const image = await uploadOnCloudinary(imgLocalPath);
 //     if (!image) {
 //       throw new Error("Error uploading the image file to Cloudinary.");
-   
+
 //     }
 
 //     const form = new Form({
@@ -64,7 +63,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 //     } else {
 //       await form.save();
 //     }
- 
+
 //    // await form.save();
 //     return res
 //       .status(201) // Use 201 for successfully created resources
@@ -86,9 +85,17 @@ const fillForm = asyncHandler(async (req, res, next) => {
       throw new ApiError(400, "Please provide both title and description");
     }
 
+    //limiting the no. of letters for title!
+    if (title.length < 5 || title.length > 30) {
+      throw new ApiError(
+        400,
+        "Please Provide the title between 5-30 characters"
+      );
+    }
+
     // Check for valid mobile number
     if (mobile == "") {
-      throw new ApiError(400, "Phone field cannot be empty", [], null, "validation");
+      throw new ApiError(400, "Phone field cannot be empty");
     } else if (mobile.length !== 10) {
       throw new ApiError(400, "Phone Number must be a 10-digit number!");
     } else if (mobile[0] !== "9" && mobile[0] !== "8" && mobile[0] !== "7") {
@@ -99,7 +106,10 @@ const fillForm = asyncHandler(async (req, res, next) => {
 
     const imgLocalPath = req.file?.path;
     if (!imgLocalPath) {
-      throw new ApiError(400, "Image Local Path is required! There was an issue while uploading the image to the local storage.");
+      throw new ApiError(
+        400,
+        "Image Local Path is required! There was an issue while uploading the image to the local storage."
+      );
     }
 
     const image = await uploadOnCloudinary(imgLocalPath);
@@ -137,7 +147,7 @@ const fillForm = asyncHandler(async (req, res, next) => {
 });
 //function for getting all form details
 const getFormDetails = asyncHandler(async (req, res) => {
-try {
+  try {
     const _id = req.params.formId;
     //checking whether the given  formId exists or not
     if (!_id) {
@@ -146,106 +156,113 @@ try {
         "Invalid form id OR form Id is missing in the request"
       );
     }
-  
+
     const form = await Form.findById({ _id }); //: req.params.formId});
     console.log(form);
-  
+
     return res
       .status(200)
       .json(new ApiResponse(201, form, "Form Details fetched Successfully"));
-} catch (error) {
-  console.log(`some error occured : ${error}`);
-}
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 const updateForm = asyncHandler(async (req, res) => {
- try {
-   const { title, description ,mobile } = req.body;
-   // const _id = req.params.formId;
-    
- // Check for valid mobile number
- if (mobile == "") {
-  throw new ApiError(400, "Phone field cannot be empty", [], null, "validation");
-} else if (mobile.length !== 10) {
-  throw new ApiError(400, "Phone Number must be a 10-digit number!");
-} else if (mobile[0] !== "9" && mobile[0] !== "8" && mobile[0] !== "7") {
-  throw new ApiError(400, "Phone number should start with 9, 8, or 7");
-} else if (!/^[0-9]{10}$/.test(mobile)) {
-  throw new ApiError(400, "Invalid Phone Number!");
-}
+  try {
+    const { title, description, mobile } = req.body;
+    // const _id = req.params.formId;
 
+    //limiting the no. of letters for title!
+    if (title.length < 5 || title.length > 30) {
+      throw new ApiError(
+        400,
+        "Please Provide the title between 5-30 characters"
+      );
+    }
 
-   // Check if a file was uploaded
-   let image = {};
-   if (req.file) {
-     const imgLocalPath = req.file.path;
-     image = await uploadOnCloudinary(imgLocalPath);
-   }
- 
-   // if (!_id) {
-   //   throw new ApiError(404, "Invalid form id OR formId is required!");
-   // }
- 
-   // Convert _id to ObjectId if necessary
- 
-   //check by title if same title form is exist or not!!
-   const existedForm = await  Form.findOne({title});
-   if (existedForm ) {  //&& existedForm._id != req.params.formId
-     throw new ApiError(409, `A form with this title already exists.`);
-   }
- 
-   const form = await Form.findByIdAndUpdate(
-     { _id: req.params.formId },
-     {
-       $set: {
- 
-         title,//req.body.title,
-         description,// req.body.description,
-         image: req.file ? image.url : undefined, // Update image only if a file was uploaded
-         mobile,  //req.body.mobile
-       },
-     },
-     { new: true }
-   );
- 
-   return res
-     .status(200)
-     .json(new ApiResponse(201, form, "Form details updated successfully!"));
- } catch (error) {
-  console.log(`some error occured : ${error}`);
- }
+    // Check for valid mobile number
+    if (mobile == "") {
+      throw new ApiError(400, "Phone field cannot be empty");
+    } else if (mobile.length !== 10) {
+      throw new ApiError(400, "Phone Number must be a 10-digit number!");
+    } else if (mobile[0] !== "9" && mobile[0] !== "8" && mobile[0] !== "7") {
+      throw new ApiError(400, "Phone number should start with 9, 8, or 7");
+    } else if (!/^[0-9]{10}$/.test(mobile)) {
+      throw new ApiError(400, "Invalid Phone Number!");
+    }
+
+    // Check if a file was uploaded
+    let image = {};
+    if (req.file) {
+      const imgLocalPath = req.file.path;
+      image = await uploadOnCloudinary(imgLocalPath);
+    }
+
+    // if (!_id) {
+    //   throw new ApiError(404, "Invalid form id OR formId is required!");
+    // }
+
+    // Convert _id to ObjectId if necessary
+
+    //check by title if same title form is exist or not!!
+    const existedForm = await Form.findOne({ title });
+    if (existedForm) {
+      //&& existedForm._id != req.params.formId
+      throw new ApiError(409, `A form with this title already exists.`);
+    }
+
+    const form = await Form.findByIdAndUpdate(
+      { _id: req.params.formId },
+      {
+        $set: {
+          title, //req.body.title,
+          description, // req.body.description,
+          image: req.file ? image.url : undefined, // Update image only if a file was uploaded
+          mobile, //req.body.mobile
+        },
+      },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(201, form, "Form details updated successfully!"));
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 //function for deleting form details
 const deleteFormDetails = asyncHandler(async (req, res) => {
- try {
-   const _id = req.params.formId; //here we cannnot destructure the _id
- 
-   if (!_id) {
-     throw new ApiError(400, "please provide a valid form Id");
-   }
- 
-   const form = await Form.findByIdAndDelete({ _id });
-   return res
-     .status(200)
-     .json(
-       new ApiResponse(200, form, "The form has been deleted  succesfully!")
-     );
- } catch (error) {
-  console.log(`some error occured : ${error}`);
- }
+  try {
+    const _id = req.params.formId; //here we cannnot destructure the _id
+
+    if (!_id) {
+      throw new ApiError(400, "please provide a valid form Id");
+    }
+
+    const form = await Form.findByIdAndDelete({ _id });
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, form, "The form has been deleted  succesfully!")
+      );
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 const getAllForm = asyncHandler(async (req, res) => {
- try {
-   const form = await Form.find();
- 
-   return res
-     .status(200)
-     .json(new ApiResponse(200, form, "Forms fetched Successfully"));
- } catch (error) {
-  console.log(`some error occured : ${error}`);
- }
+  try {
+    const form = await Form.find();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, form, "Forms fetched Successfully"));
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // function phonenumber(inputtxt) {
@@ -283,5 +300,5 @@ export {
   getFormDetails,
   deleteFormDetails,
   getAllForm,
- // fillFormNew,
+  // fillFormNew,
 };
