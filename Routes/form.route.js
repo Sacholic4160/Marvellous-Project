@@ -22,5 +22,8 @@ router.route("/update-form/:formId").put(upload.single("image"),updateForm)
 router.route("/delete-form/:formId").delete(deleteFormDetails)
 
 
+//new route for filling the form 
+// router.route("/newform").post(fillFormNew)
+
 
 export default router;

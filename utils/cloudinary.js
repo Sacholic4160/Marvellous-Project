@@ -23,16 +23,24 @@ const uploadOnCloudinary = async (localFilePath) => {
     console.log(`File have been uploaded to cloudinary : ${response.url}`);
 
     //now though file is uploaded we can remove it from local machine!!
-    fs.unlinkSync(localFilePath);
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      console.log("File has been deleted");
+    } else { 
+      console.error("Failed to delete local")
+    }
     return response;
   } catch (error) {
-
-    fs.unlinkSync(localFilePath);
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      console.log("File has been deleted");
+    } else { 
+      console.error("Failed to delete local")
+    }
     console.log("Error in uploading image on Cloudinary ", error);
-    
+
     return null;
   }
 };
 
-
-export {uploadOnCloudinary}
+export { uploadOnCloudinary };
